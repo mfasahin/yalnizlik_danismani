@@ -41,6 +41,37 @@
 
 .app-card > * { position: relative; z-index: 1; }
 
+/* Ruh hali rozeti (seçimden sonra küçük şerit olarak kalır) */
+.mood-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: var(--footer-bg);
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+  animation: fadeInUp 0.3s ease;
+}
+
+.mood-badge span:first-child {
+  font-size: 16px;
+}
+
+.mood-badge__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.mood-badge::before {
+  content: 'Bugünkü ruh hali:';
+  font-size: 10px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 2px;
+}
+
 /* Chat message list */
 .chat-list {
   flex: 1;

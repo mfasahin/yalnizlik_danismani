@@ -3,6 +3,7 @@ import CrisisBanner from './components/CrisisBanner';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
+import MoodSelector from './components/MoodSelector';
 import { LockFilled } from '@ant-design/icons';
 import './App.css';
 
@@ -16,6 +17,16 @@ const AI_RESPONSES = [
   'Bunları yaşarken kendinize nasıl destek oluyorsunuz? Küçük şeyler bile işe yarayabilir.',
 ];
 
+// Ruh haline göre AI açılış cevabı
+const MOOD_RESPONSES = {
+  happy:    'Ne güzel, bugün mutlu hissediyorsun! Bu enerjiyi seninle paylaşmak güzel. Seni bu kadar iyi hissettiren ne oldu acaba?',
+  calm:     'Sakin bir gün geçiriyorsun, bu çok değerli. Zihnin bu dingin halinde konuşmak ister misin?',
+  neutral:  'Nötr bir gün... Bazen öyle günler olur. Ne anlatmak istersin bugün?',
+  sad:      'Hüzünlü hissetmek zor. Bu duyguyu benimle paylaştığın için teşekkür ederim. Neler var içinde bugün?',
+  anxious:  'Endişeli hissetmek yorucu olabilir. Rahat bir nefes al... Seni bu kadar endişelendiren ne var?',
+  terrible: 'Çok zor bir gün geçiriyorsun. Buradayım, her şeyi dinlemeye hazırım. Ne anlatmak istersin?',
+};
+
 let msgIdCounter = 0;
 const createMsg = (role, content, extra = {}) => ({
   id: ++msgIdCounter,
@@ -25,29 +36,28 @@ const createMsg = (role, content, extra = {}) => ({
   ...extra,
 });
 
-const STREAM_DELAY_MS = 28; // ms per character
+const STREAM_DELAY_MS = 28;
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [moodSelected, setMoodSelected] = useState(false); // Seçim yapıldı mı?
   const [messages, setMessages] = useState([
     createMsg('ai', 'Merhaba, ben Dijital Yol Arkadaşınızım. Bugün nasılsınız? Düşüncelerinizi, hissettiklerinizi benimle paylaşabilirsiniz. Burada güvende ve yargılanmaksızın konuşabilirsiniz.'),
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Apply dark mode to <html> element
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const streamAIResponse = useCallback((text) => {
     setIsStreaming(true);
-    // Add a streaming placeholder message
     const streamId = ++msgIdCounter;
     setMessages(prev => [...prev, {
       id: streamId,
@@ -70,18 +80,26 @@ function App() {
         setIsStreaming(false);
       }
     };
-
-    // Brief pause before starting to simulate "thinking"
     setTimeout(tick, 700);
   }, []);
 
+  // Ruh hali seçildiğinde AI'dan bir karşılama cevabı gelsin
+  const handleMoodSelect = useCallback((mood) => {
+    if (moodSelected) return; // Bir kez seçilebilir
+    setSelectedMood(mood);
+    setMoodSelected(true);
+
+    // Kullanıcı adına bir "ruh hali paylaşımı" mesajı ekle
+    setMessages(prev => [...prev, createMsg('user', `${mood.emoji} Bugün ${mood.label.toLowerCase()} hissediyorum.`)]);
+
+    // AI'dan ruh haline özel cevap al
+    const aiText = MOOD_RESPONSES[mood.value] || AI_RESPONSES[0];
+    streamAIResponse(aiText);
+  }, [moodSelected, streamAIResponse]);
+
   const handleSend = useCallback((text) => {
     if (isStreaming) return;
-
-    // Add user message (already sanitized in ChatInput)
     setMessages(prev => [...prev, createMsg('user', text)]);
-
-    // Pick a random AI response
     const aiText = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
     streamAIResponse(aiText);
   }, [isStreaming, streamAIResponse]);
@@ -91,6 +109,19 @@ function App() {
       <div className="app-card">
         <CrisisBanner />
         <Header darkMode={darkMode} onToggleDark={() => setDarkMode(d => !d)} />
+
+        {/* Ruh Hali Seçici - Seçilene kadar göster, seçilince küçük rozet olarak kalır */}
+        {!moodSelected ? (
+          <MoodSelector
+            onMoodSelect={handleMoodSelect}
+            selectedMood={selectedMood}
+          />
+        ) : (
+          <div className="mood-badge" title={`Bugünkü ruh halin: ${selectedMood.label}`}>
+            <span>{selectedMood.emoji}</span>
+            <span className="mood-badge__label">{selectedMood.label}</span>
+          </div>
+        )}
 
         {/* Chat list */}
         <main className="chat-list" role="log" aria-live="polite" aria-label="Sohbet geçmişi">
@@ -105,7 +136,7 @@ function App() {
         {/* Security footer */}
         <footer className="app-footer" aria-label="Gizlilik bilgisi">
           <LockFilled className="app-footer__icon" aria-hidden="true" />
-          <span>Verileriniz uçtan uca şifrelidir ve anonimdir.</span>
+          <span>Verileriniz uçtan uca şifrelidir. Bu bir yapay zeka destek aracıdır, profesyonel terapi yerine geçmez.</span>
         </footer>
       </div>
     </div>

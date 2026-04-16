@@ -1,0 +1,145 @@
+.mood-selector {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--footer-bg);
+  flex-shrink: 0;
+  animation: fadeInUp 0.4s ease;
+}
+
+.mood-selector__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+
+.mood-selector__grid {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Her emoji butonu */
+.mood-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--card-bg);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  min-width: 62px;
+  backdrop-filter: blur(8px);
+}
+
+.mood-btn:hover {
+  border-color: var(--mood-color);
+  background: color-mix(in srgb, var(--mood-color) 12%, transparent);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--mood-color) 30%, transparent);
+}
+
+.mood-btn--selected {
+  border-color: var(--mood-color);
+  background: color-mix(in srgb, var(--mood-color) 18%, transparent);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--mood-color) 35%, transparent);
+}
+
+.mood-btn__emoji {
+  font-size: 26px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.mood-btn:hover .mood-btn__emoji,
+.mood-btn--selected .mood-btn__emoji {
+  transform: scale(1.15);
+}
+
+.mood-btn__label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.mood-btn--selected .mood-btn__label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Yeşil tik işareti */
+.mood-btn__check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  background: var(--mood-color);
+  border-radius: 50%;
+  font-size: 9px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* Seçim sonrası feedback metni */
+.mood-selector__feedback {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  animation: fadeInUp 0.35s ease;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--mood-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mood-color) 25%, transparent);
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mood-selector__feedback strong {
+  color: var(--text-primary);
+}
+
+/* Dark mode uyumu */
+[data-theme="dark"] .mood-btn {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .mood-btn:hover {
+  background: color-mix(in srgb, var(--mood-color) 15%, transparent);
+}
+
+/* Mobil */
+@media (max-width: 480px) {
+  .mood-selector__grid {
+    gap: 6px;
+  }
+  .mood-btn {
+    min-width: 52px;
+    padding: 6px 8px;
+  }
+  .mood-btn__emoji {
+    font-size: 22px;
+  }
+}
