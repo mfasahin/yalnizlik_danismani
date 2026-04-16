@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --mint: #a8d8c8;
+  --mint-light: #d4ede5;
+  --mint-dark: #6dbfa8;
+  --sky: #b8d4e8;
+  --sky-light: #dcedf6;
+  --warm-gray: #8a8fa8;
+  --bg-gradient-start: #e8f4f0;
+  --bg-gradient-mid: #dde8f4;
+  --bg-gradient-end: #f0e8f4;
+  --card-bg: rgba(255, 255, 255, 0.72);
+  --card-border: rgba(168, 216, 200, 0.35);
+  --shadow: 0 8px 48px rgba(100, 160, 180, 0.18);
+  --msg-user-bg: linear-gradient(135deg, #6dbfa8, #5aacb5);
+  --msg-ai-bg: rgba(255, 255, 255, 0.88);
+  --msg-ai-border: rgba(168, 216, 200, 0.5);
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --text-light: #a0aec0;
+  --crisis-bg: linear-gradient(90deg, #fff3cd, #ffe8e8);
+  --crisis-border: #f5a623;
+  --footer-bg: rgba(168, 216, 200, 0.12);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --bg-gradient-start: #1a2332;
+  --bg-gradient-mid: #1e2a3a;
+  --bg-gradient-end: #221d33;
+  --card-bg: rgba(30, 42, 58, 0.85);
+  --card-border: rgba(100, 180, 160, 0.2);
+  --shadow: 0 8px 48px rgba(0, 0, 0, 0.4);
+  --msg-ai-bg: rgba(40, 55, 72, 0.9);
+  --msg-ai-border: rgba(100, 180, 160, 0.25);
+  --text-primary: #e2e8f0;
+  --text-secondary: #a0b0c0;
+  --text-light: #718096;
+  --footer-bg: rgba(100, 160, 140, 0.08);
+  --crisis-bg: linear-gradient(90deg, #3d3212, #3d1a1a);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: linear-gradient(
+    135deg,
+    var(--bg-gradient-start) 0%,
+    var(--bg-gradient-mid) 50%,
+    var(--bg-gradient-end) 100%
+  );
+  background-attachment: fixed;
+  min-height: 100vh;
+  transition: var(--transition);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mint-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mint);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
