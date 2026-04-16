@@ -88,23 +88,64 @@
   letter-spacing: 0.2px;
 }
 
-/* Typing Indicator */
+/* Typing Indicator - Gelişmiş */
 .typing-indicator {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   padding: 2px 0;
 }
 
+.typing-indicator__dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .typing-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--mint-dark);
-  animation: pulse-dot 1.4s ease-in-out infinite;
+  animation: bounce-dot 1.2s ease-in-out infinite;
   display: inline-block;
 }
 
 .typing-dot:nth-child(1) { animation-delay: 0s; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+.typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes bounce-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-6px); opacity: 1; }
+}
+
+.typing-indicator__text {
+  font-size: 11.5px;
+  color: var(--text-light);
+  font-style: italic;
+  letter-spacing: 0.2px;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* Streaming cursor - mesaj yazılırken yanıp sönen çizgi */
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--mint-dark);
+  border-radius: 1px;
+  margin-left: 3px;
+  vertical-align: middle;
+  animation: blink-cursor 0.75s step-end infinite;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
