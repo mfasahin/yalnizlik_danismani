@@ -2,13 +2,28 @@ import React from 'react';
 import { RobotFilled, UserOutlined } from '@ant-design/icons';
 import './ChatMessage.css';
 
+// AI yazarken gösterilen gelişmiş typing indicator
 const TypingIndicator = () => (
-  <span className="typing-indicator" aria-label="Yazıyor">
-    <span className="typing-dot" />
-    <span className="typing-dot" />
-    <span className="typing-dot" />
-  </span>
+  <div className="typing-indicator" aria-label="Danışman yazıyor">
+    <div className="typing-indicator__dots">
+      <span className="typing-dot" />
+      <span className="typing-dot" />
+      <span className="typing-dot" />
+    </div>
+    <span className="typing-indicator__text">Danışman yanıt yazıyor</span>
+  </div>
 );
+
+// AI cevabı tamamlanınca içeriği göster, streaming'de indicator
+const MessageContent = ({ content, isStreaming }) => {
+  if (isStreaming && !content) return <TypingIndicator />;
+  return (
+    <span className="chat-message__text">
+      {content}
+      {isStreaming && <span className="streaming-cursor" aria-hidden="true" />}
+    </span>
+  );
+};
 
 const formatTime = (date) => {
   if (!date) return '';
@@ -26,11 +41,7 @@ const ChatMessage = ({ message }) => {
       </div>
       <div className="chat-message__body">
         <div className="chat-message__bubble">
-          {isStreaming ? (
-            <TypingIndicator />
-          ) : (
-            <span className="chat-message__text">{content}</span>
-          )}
+          <MessageContent content={content} isStreaming={isStreaming} />
         </div>
         <time className="chat-message__time" dateTime={timestamp?.toISOString()}>
           {formatTime(timestamp)}

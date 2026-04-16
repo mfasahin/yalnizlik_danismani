@@ -3,6 +3,7 @@ import CrisisBanner from './components/CrisisBanner';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
+import QuickReplies from './components/QuickReplies';
 import MoodSelector from './components/MoodSelector';
 import { LockFilled } from '@ant-design/icons';
 import './App.css';
@@ -46,6 +47,7 @@ function App() {
     createMsg('ai', 'Merhaba, ben Dijital Yol Arkadaşınızım. Bugün nasılsınız? Düşüncelerinizi, hissettiklerinizi benimle paylaşabilirsiniz. Burada güvende ve yargılanmaksızın konuşabilirsiniz.'),
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(true); // İlk mesaja kadar görünür
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +101,7 @@ function App() {
 
   const handleSend = useCallback((text) => {
     if (isStreaming) return;
+    setShowQuickReplies(false); // İlk mesajdan sonra hızlı cevapları gizle
     setMessages(prev => [...prev, createMsg('user', text)]);
     const aiText = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
     streamAIResponse(aiText);
@@ -130,6 +133,11 @@ function App() {
           ))}
           <div ref={chatEndRef} />
         </main>
+
+        {/* Hızlı başlangıç soruları - sadece henüz mesaj gönderilmemişse göster */}
+        {showQuickReplies && moodSelected && (
+          <QuickReplies onSelect={(text) => handleSend(text)} />
+        )}
 
         <ChatInput onSend={handleSend} disabled={isStreaming} />
 
