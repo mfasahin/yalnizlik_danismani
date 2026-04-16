@@ -86,3 +86,9 @@
   transform: rotate(18deg) scale(1.08);
   box-shadow: 0 4px 12px rgba(109, 191, 168, 0.35);
 }
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -3,8 +3,9 @@ import CrisisBanner from './components/CrisisBanner';
 import Header from './components/Header';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
-import QuickReplies from './components/QuickReplies';
 import MoodSelector from './components/MoodSelector';
+import QuickReplies from './components/QuickReplies';
+import MoodHistory from './components/MoodHistory';
 import { LockFilled } from '@ant-design/icons';
 import './App.css';
 
@@ -28,6 +29,19 @@ const MOOD_RESPONSES = {
   terrible: 'Çok zor bir gün geçiriyorsun. Buradayım, her şeyi dinlemeye hazırım. Ne anlatmak istersin?',
 };
 
+// localStorage yardımcıları
+const HISTORY_KEY = 'yalnizlik_mood_history';
+const loadHistory = () => {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY)) ?? [];
+  } catch {
+    return [];
+  }
+};
+const saveHistory = (history) => {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+};
+
 let msgIdCounter = 0;
 const createMsg = (role, content, extra = {}) => ({
   id: ++msgIdCounter,
@@ -42,12 +56,14 @@ const STREAM_DELAY_MS = 28;
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedMood, setSelectedMood] = useState(null);
-  const [moodSelected, setMoodSelected] = useState(false); // Seçim yapıldı mı?
+  const [moodSelected, setMoodSelected] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  const [moodHistory, setMoodHistory] = useState(loadHistory);
   const [messages, setMessages] = useState([
     createMsg('ai', 'Merhaba, ben Dijital Yol Arkadaşınızım. Bugün nasılsınız? Düşüncelerinizi, hissettiklerinizi benimle paylaşabilirsiniz. Burada güvende ve yargılanmaksızın konuşabilirsiniz.'),
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(true); // İlk mesaja kadar görünür
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -85,40 +101,53 @@ function App() {
     setTimeout(tick, 700);
   }, []);
 
-  // Ruh hali seçildiğinde AI'dan bir karşılama cevabı gelsin
+  // Ruh hali seçilince localStorage'a kaydet + AI yanıtı al
   const handleMoodSelect = useCallback((mood) => {
-    if (moodSelected) return; // Bir kez seçilebilir
+    if (moodSelected) return;
     setSelectedMood(mood);
     setMoodSelected(true);
 
-    // Kullanıcı adına bir "ruh hali paylaşımı" mesajı ekle
-    setMessages(prev => [...prev, createMsg('user', `${mood.emoji} Bugün ${mood.label.toLowerCase()} hissediyorum.`)]);
+    // Geçmişe ekle ve kaydet
+    const entry = {
+      emoji: mood.emoji,
+      label: mood.label,
+      value: mood.value,
+      score: mood.score,
+      timestamp: new Date().toISOString(),
+    };
+    setMoodHistory(prev => {
+      const updated = [...prev, entry];
+      saveHistory(updated);
+      return updated;
+    });
 
-    // AI'dan ruh haline özel cevap al
-    const aiText = MOOD_RESPONSES[mood.value] || AI_RESPONSES[0];
+    setMessages(prev => [...prev, createMsg('user', `${mood.emoji} Bugün ${mood.label.toLowerCase()} hissediyorum.`)]);
+    const aiText = MOOD_RESPONSES[mood.value] ?? AI_RESPONSES[0];
     streamAIResponse(aiText);
   }, [moodSelected, streamAIResponse]);
 
   const handleSend = useCallback((text) => {
     if (isStreaming) return;
-    setShowQuickReplies(false); // İlk mesajdan sonra hızlı cevapları gizle
+    setShowQuickReplies(false);
     setMessages(prev => [...prev, createMsg('user', text)]);
     const aiText = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
     streamAIResponse(aiText);
   }, [isStreaming, streamAIResponse]);
 
   return (
-    <div className="app-root">
+    <div className={`app-root ${showHistory ? 'app-root--panel-open' : ''}`}>
       <div className="app-card">
         <CrisisBanner />
-        <Header darkMode={darkMode} onToggleDark={() => setDarkMode(d => !d)} />
+        <Header
+          darkMode={darkMode}
+          onToggleDark={() => setDarkMode(d => !d)}
+          onShowHistory={() => setShowHistory(true)}
+          historyCount={moodHistory.length}
+        />
 
-        {/* Ruh Hali Seçici - Seçilene kadar göster, seçilince küçük rozet olarak kalır */}
+        {/* Ruh Hali Seçici veya Rozet */}
         {!moodSelected ? (
-          <MoodSelector
-            onMoodSelect={handleMoodSelect}
-            selectedMood={selectedMood}
-          />
+          <MoodSelector onMoodSelect={handleMoodSelect} selectedMood={selectedMood} />
         ) : (
           <div className="mood-badge" title={`Bugünkü ruh halin: ${selectedMood.label}`}>
             <span>{selectedMood.emoji}</span>
@@ -134,7 +163,7 @@ function App() {
           <div ref={chatEndRef} />
         </main>
 
-        {/* Hızlı başlangıç soruları - sadece henüz mesaj gönderilmemişse göster */}
+        {/* Hızlı başlangıç soruları */}
         {showQuickReplies && moodSelected && (
           <QuickReplies onSelect={(text) => handleSend(text)} />
         )}
@@ -146,7 +175,16 @@ function App() {
           <LockFilled className="app-footer__icon" aria-hidden="true" />
           <span>Verileriniz uçtan uca şifrelidir. Bu bir yapay zeka destek aracıdır, profesyonel terapi yerine geçmez.</span>
         </footer>
+
       </div>
+
+      {/* Duygu Geçmişi Paneli - app-card'ın sağında bağımsız kart */}
+      {showHistory && (
+        <MoodHistory
+          history={moodHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 }

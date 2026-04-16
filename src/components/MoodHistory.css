@@ -1,0 +1,249 @@
+/* Overlay kaldırıldı - panel artık chat'ın yanında bağımsız bir kart */
+
+
+/* ── Panel ── */
+.mood-history-panel {
+  width: 280px;
+  flex-shrink: 0;
+  height: calc(100vh - 40px);
+  max-height: 900px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
+  animation: slideInRight 0.35s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── Header ── */
+.mood-history-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.mood-history-panel__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.mood-history-panel__close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: var(--footer-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.mood-history-panel__close:hover {
+  background: rgba(224, 128, 128, 0.15);
+  color: #e08080;
+}
+
+/* ── İstatistikler ── */
+.mood-history-panel__stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.mood-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mood-stat__value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.mood-stat__label {
+  font-size: 10px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Grafik ── */
+.mood-history-panel__chart {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.mood-history-panel__section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.mood-chart {
+  width: 100%;
+  overflow: visible;
+}
+
+/* ── Kayıt Listesi ── */
+.mood-history-panel__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px;
+}
+
+.mood-history-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--card-border);
+  animation: fadeInUp 0.3s ease;
+}
+
+.mood-history-entry:last-child {
+  border-bottom: none;
+}
+
+.mood-history-entry__emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.mood-history-entry__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mood-history-entry__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mood-history-entry__time {
+  font-size: 10.5px;
+  color: var(--text-light);
+}
+
+.mood-history-entry__score {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+
+/* ── Boş durum ── */
+.mood-history-panel__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 30px;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mood-history-panel__empty-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+/* ── Header'daki geçmiş butonu ── */
+.app-header__history-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: var(--mint-light);
+  color: var(--mint-dark);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  position: relative;
+}
+
+[data-theme="dark"] .app-header__history-btn {
+  background: rgba(100, 160, 140, 0.2);
+  color: #81e6d9;
+}
+
+.app-header__history-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(109, 191, 168, 0.35);
+}
+
+/* Kayıt sayısı rozeti */
+.app-header__history-btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--mint-dark);
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* Mobil */
+@media (max-width: 480px) {
+  .mood-history-panel {
+    width: 100%;
+    border-radius: 0;
+  }
+}
