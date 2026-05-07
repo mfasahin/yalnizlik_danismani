@@ -1,5 +1,6 @@
 import React from 'react';
-import { HeartFilled, MoonFilled, SunFilled } from '@ant-design/icons';
+import { HeartFilled, MoonFilled, SunFilled, LogoutOutlined } from '@ant-design/icons';
+import { logoutUser } from '../firebase';
 import './Header.css';
 
 const Header = ({ darkMode, onToggleDark, onShowHistory, historyCount }) => (
@@ -37,6 +38,17 @@ const Header = ({ darkMode, onToggleDark, onShowHistory, historyCount }) => (
         title={darkMode ? 'Aydınlık mod' : 'Karanlık mod'}
       >
         {darkMode ? <SunFilled /> : <MoonFilled />}
+      </button>
+
+      {/* Çıkış Yap Butonu */}
+      <button
+        className="app-header__logout-btn"
+        onClick={logoutUser}
+        aria-label="Çıkış Yap"
+        title="Çıkış Yap"
+      >
+        <LogoutOutlined />
+        <span style={{ marginLeft: '6px', fontWeight: '600' }}>Çıkış Yap</span>
       </button>
     </div>
   </header>

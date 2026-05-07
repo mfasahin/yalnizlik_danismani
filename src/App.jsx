@@ -7,6 +7,9 @@ import MoodSelector from './components/MoodSelector';
 import QuickReplies from './components/QuickReplies';
 import MoodHistory from './components/MoodHistory';
 import { LockFilled } from '@ant-design/icons';
+import Login from './components/Login';
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './App.css';
 
 // Simulated AI responses (replace with real API later)
@@ -54,6 +57,8 @@ const createMsg = (role, content, extra = {}) => ({
 const STREAM_DELAY_MS = 28;
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [selectedMood, setSelectedMood] = useState(null);
   const [moodSelected, setMoodSelected] = useState(false);
@@ -65,6 +70,14 @@ function App() {
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
   const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
@@ -133,6 +146,14 @@ function App() {
     const aiText = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
     streamAIResponse(aiText);
   }, [isStreaming, streamAIResponse]);
+
+  if (authLoading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#fff', background: '#0f172a' }}>Yükleniyor...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className={`app-root ${showHistory ? 'app-root--panel-open' : ''}`}>
