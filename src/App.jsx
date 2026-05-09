@@ -11,26 +11,9 @@ import Login from './components/Login';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './App.css';
+import { sendMessageToGroq } from './groq';
 
-// Simulated AI responses (replace with real API later)
-const AI_RESPONSES = [
-  'Sizi duyuyorum. Hissettiklerinizi benimle paylaşmanız çok cesur bir adım. Biraz daha anlatır mısınız?',
-  'Bu duyguyu yaşamak gerçekten zor olabilir. Kendinizi nasıl hissediyorsunuz şu an?',
-  'Yalnızlık, çoğu insanın bir noktada hissettiği, oldukça insani bir duygu. Sizi bu kadar yoranın ne olduğunu merak ediyorum.',
-  'Bunu benimle paylaştığınız için teşekkür ederim. Her adım önemli, siz de önemlisiniz.',
-  'Bazen sadece biri bizi dinlediğinde daha iyi hissedebiliyoruz. Ben buradayım, dinliyorum.',
-  'Bunları yaşarken kendinize nasıl destek oluyorsunuz? Küçük şeyler bile işe yarayabilir.',
-];
 
-// Ruh haline göre AI açılış cevabı
-const MOOD_RESPONSES = {
-  happy:    'Ne güzel, bugün mutlu hissediyorsun! Bu enerjiyi seninle paylaşmak güzel. Seni bu kadar iyi hissettiren ne oldu acaba?',
-  calm:     'Sakin bir gün geçiriyorsun, bu çok değerli. Zihnin bu dingin halinde konuşmak ister misin?',
-  neutral:  'Nötr bir gün... Bazen öyle günler olur. Ne anlatmak istersin bugün?',
-  sad:      'Hüzünlü hissetmek zor. Bu duyguyu benimle paylaştığın için teşekkür ederim. Neler var içinde bugün?',
-  anxious:  'Endişeli hissetmek yorucu olabilir. Rahat bir nefes al... Seni bu kadar endişelendiren ne var?',
-  terrible: 'Çok zor bir gün geçiriyorsun. Buradayım, her şeyi dinlemeye hazırım. Ne anlatmak istersin?',
-};
 
 // localStorage yardımcıları
 const HISTORY_KEY = 'yalnizlik_mood_history';
@@ -54,7 +37,7 @@ const createMsg = (role, content, extra = {}) => ({
   ...extra,
 });
 
-const STREAM_DELAY_MS = 28;
+const STREAM_DELAY_MS = 20;
 
 function App() {
   const [user, setUser] = useState(null);
@@ -87,40 +70,52 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const streamAIResponse = useCallback((text) => {
-    setIsStreaming(true);
-    const streamId = ++msgIdCounter;
-    setMessages(prev => [...prev, {
-      id: streamId,
-      role: 'ai',
-      content: '',
-      timestamp: new Date(),
-      isStreaming: true,
-    }]);
+  const streamText = useCallback((text) => {
+    return new Promise((resolve) => {
+      const streamId = ++msgIdCounter;
+      setMessages(prev => [...prev, {
+        id: streamId,
+        role: 'ai',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+      }]);
 
-    let i = 0;
-    const tick = () => {
-      i++;
-      const partial = text.slice(0, i);
-      setMessages(prev => prev.map(m =>
-        m.id === streamId ? { ...m, content: partial, isStreaming: i < text.length } : m
-      ));
-      if (i < text.length) {
-        setTimeout(tick, STREAM_DELAY_MS);
-      } else {
-        setIsStreaming(false);
-      }
-    };
-    setTimeout(tick, 700);
+      let i = 0;
+      const tick = () => {
+        i++;
+        const partial = text.slice(0, i);
+        setMessages(prev => prev.map(m =>
+          m.id === streamId ? { ...m, content: partial, isStreaming: i < text.length } : m
+        ));
+        if (i < text.length) {
+          setTimeout(tick, STREAM_DELAY_MS);
+        } else {
+          setIsStreaming(false);
+          resolve();
+        }
+      };
+      setTimeout(tick, 400);
+    });
   }, []);
 
-  // Ruh hali seçilince localStorage'a kaydet + AI yanıtı al
+  const fetchGroqAndStream = useCallback(async (userText, currentMessages, mood) => {
+    setIsStreaming(true);
+    try {
+      const aiText = await sendMessageToGroq(currentMessages, userText, mood);
+      await streamText(aiText);
+    } catch (err) {
+      console.error('Yapay Zeka Hatası:', err);
+      await streamText('Üzgünüm, şu an bir sorun yaşıyorum. Lütfen biraz sonra tekrar dene.');
+    }
+  }, [streamText]);
+
+  // Ruh hali seçilince localStorage'a kaydet + Groq'a sor
   const handleMoodSelect = useCallback((mood) => {
     if (moodSelected) return;
     setSelectedMood(mood);
     setMoodSelected(true);
 
-    // Geçmişe ekle ve kaydet
     const entry = {
       emoji: mood.emoji,
       label: mood.label,
@@ -134,18 +129,23 @@ function App() {
       return updated;
     });
 
-    setMessages(prev => [...prev, createMsg('user', `${mood.emoji} Bugün ${mood.label.toLowerCase()} hissediyorum.`)]);
-    const aiText = MOOD_RESPONSES[mood.value] ?? AI_RESPONSES[0];
-    streamAIResponse(aiText);
-  }, [moodSelected, streamAIResponse]);
+    const userMsg = createMsg('user', `${mood.emoji} Bugün ${mood.label.toLowerCase()} hissediyorum.`);
+    const updatedMessages = [...messages, userMsg];
+    
+    setMessages(updatedMessages);
+    fetchGroqAndStream(userMsg.content, updatedMessages, mood);
+  }, [moodSelected, messages, fetchGroqAndStream]);
 
   const handleSend = useCallback((text) => {
     if (isStreaming) return;
     setShowQuickReplies(false);
-    setMessages(prev => [...prev, createMsg('user', text)]);
-    const aiText = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
-    streamAIResponse(aiText);
-  }, [isStreaming, streamAIResponse]);
+    
+    const userMsg = createMsg('user', text);
+    const updatedMessages = [...messages, userMsg];
+    
+    setMessages(updatedMessages);
+    fetchGroqAndStream(text, updatedMessages, selectedMood);
+  }, [isStreaming, messages, fetchGroqAndStream, selectedMood]);
 
   if (authLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#fff', background: '#0f172a' }}>Yükleniyor...</div>;
