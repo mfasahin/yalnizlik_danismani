@@ -33,6 +33,7 @@ const formatTime = (date) => {
 const ChatMessage = ({ message }) => {
   const { role, content, timestamp, isStreaming } = message;
   const isUser = role === 'user';
+  const dateObj = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
   return (
     <div className={`chat-message chat-message--${role}`} aria-label={`${isUser ? 'Siz' : 'Terapist'}: ${content}`}>
@@ -43,8 +44,8 @@ const ChatMessage = ({ message }) => {
         <div className="chat-message__bubble">
           <MessageContent content={content} isStreaming={isStreaming} />
         </div>
-        <time className="chat-message__time" dateTime={timestamp?.toISOString()}>
-          {formatTime(timestamp)}
+        <time className="chat-message__time" dateTime={dateObj?.toISOString()}>
+          {formatTime(dateObj)}
         </time>
       </div>
     </div>

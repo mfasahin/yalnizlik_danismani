@@ -7,6 +7,35 @@
   flex-shrink: 0;
 }
 
+.app-header__logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-header__sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.app-header__sidebar-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--mint-dark);
+}
+
+[data-theme='dark'] .app-header__sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .app-header__logo {
   display: flex;
   align-items: center;
