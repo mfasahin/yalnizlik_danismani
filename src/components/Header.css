@@ -24,7 +24,7 @@
   border-radius: 14px;
   color: #fff;
   font-size: 20px;
-  animation: float 3s ease-in-out infinite;
+  /* animation removed */
   box-shadow: 0 4px 16px rgba(109, 191, 168, 0.4);
 }
 

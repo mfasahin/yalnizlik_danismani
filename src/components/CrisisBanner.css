@@ -26,7 +26,7 @@
   color: #e53e3e;
   font-size: 18px;
   flex-shrink: 0;
-  animation: float 2.5s ease-in-out infinite;
+  /* animation removed */
 }
 
 .crisis-banner__text {
