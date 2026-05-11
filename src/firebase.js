@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, signInAnonymously } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 // UPDATE THESE VALUES WITH YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -38,12 +38,29 @@ export const loginWithEmail = async (email, password) => {
   }
 };
 
-export const registerWithEmail = async (email, password) => {
+export const registerWithEmail = async (email, password, firstName, lastName) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+    
+    // Kullanıcının adını ve soyadını profiline ekle
+    await updateProfile(user, {
+      displayName: `${firstName} ${lastName}`
+    });
+    
+    return user;
   } catch (error) {
     console.error("Kayıt Hatası:", error);
+    throw error;
+  }
+};
+
+export const loginAnonymously = async () => {
+  try {
+    const result = await signInAnonymously(auth);
+    return result.user;
+  } catch (error) {
+    console.error("Anonim Giriş Hatası:", error);
     throw error;
   }
 };

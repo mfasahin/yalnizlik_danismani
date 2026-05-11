@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { MailOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
-import { loginWithEmail, registerWithEmail, loginWithGoogle } from '../firebase';
+import { MailOutlined, LockOutlined, LoadingOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { loginWithEmail, registerWithEmail, loginWithGoogle, loginAnonymously } from '../firebase';
 import './Login.css';
 
 const GoogleIcon = () => (
@@ -14,23 +14,45 @@ const GoogleIcon = () => (
 
 const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!email || !password) {
-      setError('Lütfen e-posta ve şifrenizi girin.');
-      return;
+
+    // Form validation
+    if (isRegistering) {
+      if (!firstName || !lastName || !email || !password || !confirmPassword) {
+        setError('Lütfen tüm alanları doldurun.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Şifreler eşleşmiyor.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Şifre en az 6 karakter olmalıdır.');
+        return;
+      }
+    } else {
+      if (!email || !password) {
+        setError('Lütfen e-posta ve şifrenizi girin.');
+        return;
+      }
     }
     
     setLoading(true);
     try {
       if (isRegistering) {
-        await registerWithEmail(email, password);
+        await registerWithEmail(email, password, firstName, lastName);
       } else {
         await loginWithEmail(email, password);
       }
@@ -61,8 +83,20 @@ const Login = () => {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await loginAnonymously();
+    } catch (err) {
+      setError('Misafir girişi yapılamadı.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="login-container">
+    <div className={`login-container ${isRegistering ? 'register-mode' : 'login-mode'}`}>
       <div className="login-card">
         <div className="login-header">
           <h1>Yapay Yalnızlık Danışmanı</h1>
@@ -72,6 +106,39 @@ const Login = () => {
         {error && <div className="error-message">{error}</div>}
 
         <form className="login-form" onSubmit={handleSubmit}>
+          {isRegistering && (
+            <div className="input-row">
+              <div className="input-group">
+                <label>Ad</label>
+                <div className="input-wrapper">
+                  <UserOutlined className="input-icon" />
+                  <input 
+                    type="text" 
+                    className="login-input" 
+                    placeholder="Adınız"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+              <div className="input-group">
+                <label>Soyad</label>
+                <div className="input-wrapper">
+                  <UserOutlined className="input-icon" />
+                  <input 
+                    type="text" 
+                    className="login-input" 
+                    placeholder="Soyadınız"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="input-group">
             <label>E-posta Adresi</label>
             <div className="input-wrapper">
@@ -92,15 +159,48 @@ const Login = () => {
             <div className="input-wrapper">
               <LockOutlined className="input-icon" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'} 
                 className="login-input" 
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
+              <button 
+                type="button" 
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+              </button>
             </div>
           </div>
+
+          {isRegistering && (
+            <div className="input-group">
+              <label>Şifre Tekrar</label>
+              <div className="input-wrapper">
+                <LockOutlined className="input-icon" />
+                <input 
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  className="login-input" 
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex="-1"
+                >
+                  {showConfirmPassword ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                </button>
+              </div>
+            </div>
+          )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <LoadingOutlined /> : (isRegistering ? 'Kayıt Ol' : 'Giriş Yap')}
@@ -109,16 +209,27 @@ const Login = () => {
 
         <div className="divider">veya</div>
 
-        <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
-          <GoogleIcon />
-          Google ile devam et
-        </button>
+        <div className="social-login">
+          <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
+            <GoogleIcon />
+            Google
+          </button>
+          
+          {!isRegistering && (
+            <button className="btn-guest" onClick={handleGuestLogin} disabled={loading}>
+              <ArrowRightOutlined />
+              Misafir
+            </button>
+          )}
+        </div>
 
         <div className="auth-switch">
           {isRegistering ? 'Zaten hesabınız var mı?' : 'Hesabınız yok mu?'}
           <span onClick={() => {
             setIsRegistering(!isRegistering);
             setError(null);
+            setShowPassword(false);
+            setShowConfirmPassword(false);
           }}>
             {isRegistering ? 'Giriş Yap' : 'Kayıt Ol'}
           </span>

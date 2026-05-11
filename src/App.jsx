@@ -17,25 +17,28 @@ import { sendMessageToGroq } from './groq';
 
 
 // localStorage yardımcıları (Mood History)
-const HISTORY_KEY = 'yalnizlik_mood_history';
-const loadHistory = () => {
+const getHistoryKey = (uid) => `yalnizlik_mood_history_${uid}`;
+const loadHistory = (uid) => {
+  if (!uid) return [];
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) ?? [];
+    return JSON.parse(localStorage.getItem(getHistoryKey(uid))) ?? [];
   } catch {
     return [];
   }
 };
-const saveHistory = (history) => {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+const saveHistory = (uid, history) => {
+  if (!uid) return;
+  localStorage.setItem(getHistoryKey(uid), JSON.stringify(history));
 };
 
 // localStorage yardımcıları (Chats)
-const CHATS_KEY = 'yalnizlik_chats_history';
+const getChatsKey = (uid) => `yalnizlik_chats_history_${uid}`;
 const defaultInitialMsg = 'Merhaba, ben Dijital Yol Arkadaşınızım. Bugün nasılsınız? Düşüncelerinizi, hissettiklerinizi benimle paylaşabilirsiniz. Burada güvende ve yargılanmaksızın konuşabilirsiniz.';
 
-const loadChats = () => {
+const loadChats = (uid) => {
+  if (!uid) return [];
   try {
-    const data = JSON.parse(localStorage.getItem(CHATS_KEY));
+    const data = JSON.parse(localStorage.getItem(getChatsKey(uid)));
     if (data && Array.isArray(data) && data.length > 0) {
       // Veri temizliği: Eski bug yüzünden kopyalanan mesajları temizle
       return data.map(chat => {
@@ -61,6 +64,7 @@ const loadChats = () => {
       });
     }
   } catch {}
+  
   return [{
     id: Date.now().toString(),
     title: 'Yeni Sohbet',
@@ -68,8 +72,9 @@ const loadChats = () => {
     mood: null
   }];
 };
-const saveChats = (chats) => {
-  localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
+const saveChats = (uid, chats) => {
+  if (!uid) return;
+  localStorage.setItem(getChatsKey(uid), JSON.stringify(chats));
 };
 
 const createMsg = (role, content, extra = {}) => ({
@@ -88,23 +93,42 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar state
-  const [moodHistory, setMoodHistory] = useState(loadHistory);
-
-  // Chat State
-  const [chats, setChats] = useState(loadChats);
-  const [currentChatId, setCurrentChatId] = useState(chats[0]?.id || Date.now().toString());
   
-  // Current Chat UI State
-  const initialChat = chats.find(c => c.id === currentChatId) || chats[0];
-  const [messages, setMessages] = useState(initialChat.messages);
-  const [selectedMood, setSelectedMood] = useState(initialChat.mood);
-  const [moodSelected, setMoodSelected] = useState(!!initialChat.mood);
-  const [showQuickReplies, setShowQuickReplies] = useState(initialChat.messages.length <= 1);
+  // Chat & History State
+  const [chats, setChats] = useState([]);
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [moodSelected, setMoodSelected] = useState(false);
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // Kullanıcı giriş yaptığında verilerini yükle
+        const loadedChats = loadChats(currentUser.uid);
+        const loadedHistory = loadHistory(currentUser.uid);
+        const initialChat = loadedChats[0];
+
+        setChats(loadedChats);
+        setMoodHistory(loadedHistory);
+        setCurrentChatId(initialChat.id);
+        setMessages(initialChat.messages);
+        setSelectedMood(initialChat.mood);
+        setMoodSelected(!!initialChat.mood);
+        setShowQuickReplies(initialChat.messages.length <= 1);
+      } else {
+        // Çıkış yapıldığında state'i sıfırla
+        setChats([]);
+        setMoodHistory([]);
+        setCurrentChatId(null);
+        setMessages([]);
+        setSelectedMood(null);
+        setMoodSelected(false);
+      }
       setUser(currentUser);
       setAuthLoading(false);
     });
@@ -121,6 +145,8 @@ function App() {
 
   // Sync current chat state back to the chats array and localStorage
   useEffect(() => {
+    if (!user || !currentChatId) return;
+
     setChats(prev => {
       const newChats = prev.map(chat => {
         if (chat.id === currentChatId) {
@@ -135,10 +161,10 @@ function App() {
         }
         return chat;
       });
-      saveChats(newChats);
+      saveChats(user.uid, newChats);
       return newChats;
     });
-  }, [messages, selectedMood, currentChatId]);
+  }, [messages, selectedMood, currentChatId, user]);
 
   const handleNewChat = useCallback(() => {
     const newChat = {
@@ -249,7 +275,7 @@ function App() {
     };
     setMoodHistory(prev => {
       const updated = [...prev, entry];
-      saveHistory(updated);
+      saveHistory(user.uid, updated);
       return updated;
     });
 
