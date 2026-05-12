@@ -1,15 +1,16 @@
-import React from 'react';
-import { MessageOutlined, PlusOutlined, DeleteOutlined, LogoutOutlined } from '@ant-design/icons';
+import { MessageOutlined, PlusOutlined, DeleteOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { logoutUser } from '../firebase';
 import './Sidebar.css';
 
-const Sidebar = ({ chats, currentChatId, isOpen, onSelectChat, onNewChat, onDeleteChat }) => {
+const Sidebar = ({ chats, currentChatId, isOpen, onSelectChat, onNewChat, onDeleteChat, onProfileClick }) => {
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+      {/* ... (new chat button) */}
       <button className="new-chat-btn" onClick={onNewChat}>
         <PlusOutlined /> Yeni Sohbet
       </button>
-      
+
+      {/* ... (chat list) */}
       <div className="chat-history-list">
         <div className="history-group-title">Sohbetler</div>
         {chats.map(chat => (
@@ -38,6 +39,10 @@ const Sidebar = ({ chats, currentChatId, isOpen, onSelectChat, onNewChat, onDele
       </div>
 
       <div className="sidebar-footer">
+        <button className="sidebar-profile-btn" onClick={onProfileClick}>
+          <UserOutlined />
+          <span>Profil</span>
+        </button>
         <button className="sidebar-logout-btn" onClick={logoutUser}>
           <LogoutOutlined />
           <span>Çıkış Yap</span>

@@ -1,8 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, signInAnonymously } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, signInAnonymously, updatePassword } from 'firebase/auth';
 
 // Your web app's Firebase configuration
-// UPDATE THESE VALUES WITH YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -61,6 +60,20 @@ export const loginAnonymously = async () => {
     return result.user;
   } catch (error) {
     console.error("Anonim Giriş Hatası:", error);
+    throw error;
+  }
+};
+
+export const changeUserPassword = async (newPassword) => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      await updatePassword(user, newPassword);
+    } else {
+      throw new Error("Kullanıcı bulunamadı.");
+    }
+  } catch (error) {
+    console.error("Şifre Değiştirme Hatası:", error);
     throw error;
   }
 };

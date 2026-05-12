@@ -7,6 +7,7 @@ import MoodSelector from './components/MoodSelector';
 import QuickReplies from './components/QuickReplies';
 import MoodHistory from './components/MoodHistory';
 import Sidebar from './components/Sidebar';
+import ProfileModal from './components/ProfileModal';
 import { LockFilled, MenuOutlined } from '@ant-design/icons';
 import Login from './components/Login';
 import { auth } from './firebase';
@@ -92,6 +93,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar state
   
   // Chat & History State
@@ -334,6 +336,10 @@ function App() {
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
         onDeleteChat={handleDeleteChat}
+        onProfileClick={() => {
+          setShowProfile(prev => !prev);
+          setShowHistory(false); // Aynı anda tek panel açık olsun
+        }}
       />
       
       <div 
@@ -350,7 +356,10 @@ function App() {
         <Header
           darkMode={darkMode}
           onToggleDark={() => setDarkMode(d => !d)}
-          onShowHistory={() => setShowHistory(true)}
+          onShowHistory={() => {
+            setShowHistory(prev => !prev);
+            setShowProfile(false); // Aynı anda tek panel açık olsun
+          }}
           historyCount={moodHistory.length}
           onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
         />
@@ -387,6 +396,14 @@ function App() {
         </footer>
 
       </div>
+
+      {/* Profile Panel */}
+      {showProfile && (
+        <ProfileModal 
+          user={user} 
+          onClose={() => setShowProfile(false)} 
+        />
+      )}
 
       {/* Duygu Geçmişi Paneli - app-card'ın sağında bağımsız kart */}
       {showHistory && (
