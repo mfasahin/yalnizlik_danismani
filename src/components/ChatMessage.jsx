@@ -2,6 +2,8 @@ import React from 'react';
 import { RobotFilled, UserOutlined } from '@ant-design/icons';
 import './ChatMessage.css';
 
+import ReactMarkdown from 'react-markdown';
+
 // AI yazarken gösterilen gelişmiş typing indicator
 const TypingIndicator = () => (
   <div className="typing-indicator" aria-label="Danışman yazıyor">
@@ -18,10 +20,9 @@ const TypingIndicator = () => (
 const MessageContent = ({ content, isStreaming }) => {
   if (isStreaming && !content) return <TypingIndicator />;
   return (
-    <span className="chat-message__text">
-      {content}
-      {isStreaming && <span className="streaming-cursor" aria-hidden="true" />}
-    </span>
+    <div className="chat-message__text">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
   );
 };
 

@@ -12,7 +12,7 @@ import Login from './components/Login';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './App.css';
-import { sendMessageToGroq } from './groq';
+import { sendMessageToGroq, generateChatTitle } from './groq';
 
 
 
@@ -247,18 +247,28 @@ function App() {
       };
       setTimeout(tick, 400);
     });
-  }, []);
+  }, [user]);
 
   const fetchGroqAndStream = useCallback(async (userText, currentMessages, mood) => {
     setIsStreaming(true);
     try {
       const aiText = await sendMessageToGroq(currentMessages, userText, mood);
       await streamText(aiText);
+
+      // Otomatik Başlık Oluşturma: Eğer başlık hala varsayılan ise
+      const currentChat = chats.find(c => c.id === currentChatId);
+      if (currentChat && currentChat.title === 'Yeni Sohbet') {
+        const newTitle = await generateChatTitle(userText);
+        setChats(prev => prev.map(c => 
+          c.id === currentChatId ? { ...c, title: newTitle } : c
+        ));
+      }
+
     } catch (err) {
       console.error('Yapay Zeka Hatası:', err);
       await streamText('Üzgünüm, şu an bir sorun yaşıyorum. Lütfen biraz sonra tekrar dene.');
     }
-  }, [streamText]);
+  }, [streamText, chats, currentChatId]);
 
   // Ruh hali seçilince localStorage'a kaydet + Groq'a sor
   const handleMoodSelect = useCallback((mood) => {
